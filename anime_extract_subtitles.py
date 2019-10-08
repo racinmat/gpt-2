@@ -21,12 +21,10 @@ def extract_naruto():
 
 
 def extract_monogatari():
-    # todo: try python-ass or other library for parsing
-    # todo: filter out very short text showing
+    # todo: 58 is making mess, 100 too
     subtitles_dir = './monogatari_subtitles'
     lines = []
-    files_list = glob(osp.join(subtitles_dir, '**', '*.ass')) + glob(osp.join(subtitles_dir, '*.ass'))
-    for i, file in enumerate(sorted(files_list)):
+    for i, file in enumerate(sorted(glob(osp.join(subtitles_dir, '**', '*.ass'), recursive=True))):
         lines += file_to_lines_complex(i, file)
 
     with open('monogatari-subtitles-merged.txt', 'w', encoding='utf-8') as f:
