@@ -21,7 +21,7 @@ def extract_naruto():
 
 
 def extract_monogatari():
-    # todo: 58 is making mess, 100 too
+    # todo: 44, 45, 61 is weird, 116
     subtitles_dir = './monogatari_subtitles'
     lines = []
     for i, file in enumerate(sorted(glob(osp.join(subtitles_dir, '**', '*.ass'), recursive=True))):
@@ -51,7 +51,6 @@ def file_to_lines_simple(i, file):
 
 
 def file_to_lines_complex(i, file):
-    # todo: look at a histogram of durations, they are in miliseconds, and probably crop < 500ms? or 200?
     lines = []
     prev_quote = None
     subs = pysubs2.load(file, encoding="utf-8")
@@ -62,16 +61,20 @@ def file_to_lines_complex(i, file):
         durs.append(line.duration)
         if line.duration < 200:
             continue
+        if line.style == 'Black and Red':   # empirically found this style contains weird texts
+            continue
         quote = line.text
-        quote = quote.replace('\n', ' ').replace(r'\N', ' ')
+        quote = quote.replace('\n', ' ').replace(r'\N', ' ').replace(r'\h', ' ')
         quote = re.sub(r'\{.*?\}', '', quote)
+        if re.match('^m -?\d+(\.\d+)? -?\d+(\.\d+)?', quote): # those weird long numeric sequences
+            continue
         if quote.endswith(' '):
             quote = quote[:-1]
         # conditioning for gpt-2 model
         if quote == '':
             continue
-        quote = f'{i + 1}|{quote}'
         quote = re.sub('\s+', ' ', quote).strip()  # multiple whitespaces replaced by one
+        quote = f'{i + 1}|{quote}'
         if prev_quote != quote:
             lines.append(quote)
         prev_quote = quote
