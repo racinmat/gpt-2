@@ -3,6 +3,7 @@ import re
 from glob import glob
 
 import pysubs2
+from PyPDF2 import PdfFileReader
 
 
 def naruto_order_episodes(x):
@@ -32,6 +33,27 @@ def extract_monogatari():
             f.write(line + '\n')
 
 
+def extract_overlord():
+    subtitles_dir = './overlord_vn/txt'
+    lines = []
+    for i, file in enumerate(sorted(glob(osp.join(subtitles_dir, '**', '*.txt'), recursive=True))):
+        with open(file, 'r', encoding='utf-8') as f:
+            line = ''
+            for line_part in f:
+                if line_part == '\n' and line != '' and line != ' ':
+                    line = re.sub('\s+', ' ', line).strip()
+                    lines.append(line)
+                    line = ''
+                else:
+                    line += line_part.replace('\n', ' ')
+            line = re.sub('\s+', ' ', line).strip()
+            lines.append(line)
+
+    with open('overlord-vn-merged.txt', 'w', encoding='utf-8') as f:
+        for line in lines:
+            f.write(line + '\n')
+
+
 def file_to_lines_simple(i, file):
     lines = []
     subs = pysubs2.load(file, encoding="utf-8")
@@ -42,8 +64,8 @@ def file_to_lines_simple(i, file):
         if quote.endswith(' '):
             quote = quote[:-1]
         # conditioning for gpt-2 model
-        quote = f'{i + 1}|{quote}'
         quote = re.sub('\s+', ' ', quote).strip()  # multiple whitespaces replaced by one
+        quote = f'{i + 1}|{quote}'
         if quote == '':
             continue
         lines.append(quote)
@@ -54,19 +76,15 @@ def file_to_lines_complex(i, file):
     lines = []
     prev_quote = None
     subs = pysubs2.load(file, encoding="utf-8")
-    import numpy as np
-    import matplotlib.pyplot as plt
-    durs = []
     for line in subs:
-        durs.append(line.duration)
         if line.duration < 200:
             continue
-        if line.style == 'Black and Red':   # empirically found this style contains weird texts
+        if line.style == 'Black and Red':  # empirically found this style contains weird texts
             continue
         quote = line.text
         quote = quote.replace('\n', ' ').replace(r'\N', ' ').replace(r'\h', ' ')
         quote = re.sub(r'\{.*?\}', '', quote)
-        if re.match('^m -?\d+(\.\d+)? -?\d+(\.\d+)?', quote): # those weird long numeric sequences
+        if re.match('^m -?\d+(\.\d+)? -?\d+(\.\d+)?', quote):  # those weird long numeric sequences
             continue
         if quote.endswith(' '):
             quote = quote[:-1]
@@ -79,16 +97,13 @@ def file_to_lines_complex(i, file):
             lines.append(quote)
         prev_quote = quote
 
-    np_durs = np.array(durs)
-    y = np.bincount(np_durs)
-    ii = np.nonzero(y)[0]
-    histogram = np.array(list(zip(ii, y[ii])))
     return lines
 
 
 def main():
     # extract_naruto()
-    extract_monogatari()
+    # extract_monogatari()
+    extract_overlord()
 
 
 if __name__ == '__main__':
