@@ -2,9 +2,13 @@
 # Usage:
 #  PYTHONPATH=src ./train --dataset <file|directory|glob>
 
+import sys
+sys.path.append('./src')
+# for training only on cpu
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 import argparse
 import json
-import os
 import numpy as np
 import tensorflow as tf
 import time
