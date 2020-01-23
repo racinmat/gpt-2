@@ -105,3 +105,7 @@ We are still considering release of the larger models.
 ## License
 
 [MIT](./LICENSE)
+
+## Addition of this fork
+
+Added dataset made from anime subtitles and visual novel to demonstrate how pertrained model will perform on these domains.
